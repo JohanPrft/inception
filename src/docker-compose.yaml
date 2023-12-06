@@ -1,0 +1,71 @@
+version: '3'
+
+services:
+
+  nginx:
+    build: ./requirement/nginx/
+    ports:
+      - "9000"
+      - "443:443"
+    env_file: ./.env
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+    restart: on-failure
+    volumes:
+    - wordpress-data:/var/www/html
+
+  mariadb:
+    build: ./requirement/mariadb/
+    ports:
+      - "3306"
+    env_file: ./.env
+    networks:
+      - inception
+    restart: on-failure
+    volumes:
+      - mariadb-data:/var/lib/mysql/
+
+
+  wordpress:
+    build: ./requirement/wordpress/
+    ports:
+      - "9000"
+      - "3306"
+    env_file: ./.env
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+    restart: on-failure
+    volumes:
+      - wordpress-data:/var/www/html/
+
+
+# Create named volumes
+volumes:
+  mariadb-data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      #bind volume to directory
+      o: 'bind'
+      #define the directory
+      device: ${VOLUME_PATH}/mariadb-data
+  wordpress-data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ${VOLUME_PATH}/wordpress-data
+
+
+networks:
+  inception:
+    # default
+    driver: bridge
+    name: src_bridge
+
+
+
